@@ -30,7 +30,7 @@
 	#define CPUINFO_ARCH_ARM64 1
 #endif
 
-#if defined(__loongarch__) || defined(__loongarch64)
+#if defined(__loongarch64)
 	#define CPUINFO_ARCH_LOONGARCH64 1
 #endif
 
