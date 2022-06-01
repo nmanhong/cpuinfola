@@ -532,8 +532,8 @@ enum cpuinfo_uarch {
 	/** HiSilicon TaiShan v110 (Huawei Kunpeng 920 series processors). */
 	cpuinfo_uarch_taishan_v110 = 0x00C00100,
 
-	/** Loongson 3a-5000 (Loongarch3a series processors). */
-	cpuinfo_uarch_loongarch_3a5000 = 0x00D00100,
+	/** Loongson LA4 64 (Loongarch3 series processors). */
+	cpuinfo_uarch_LA464 = 0x00D00100,
 };
 
 struct cpuinfo_processor {

@@ -39,7 +39,7 @@ struct cluster_config {
 static const struct cluster_config cluster_configs[] = {
 	{
 		.cores = 4,
-		.series = cpuinfo_loongarch_chipset_series_Loongson_3a5000,
+		.series = cpuinfo_loongarch_chipset_series_3,
 	},
 };
 

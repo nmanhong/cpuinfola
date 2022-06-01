@@ -67,7 +67,7 @@ static inline uint32_t load_u32le(const void* ptr) {
 
 static enum cpuinfo_loongarch_chipset_vendor chipset_series_vendor[cpuinfo_loongarch_chipset_series_max] = {
 	[cpuinfo_loongarch_chipset_series_unknown]                = cpuinfo_loongarch_chipset_vendor_unknown,
-	[cpuinfo_loongarch_chipset_series_Loongson_3a5000]           = cpuinfo_loongarch_chipset_vendor_Loongson,
+	[cpuinfo_loongarch_chipset_series_3]           = cpuinfo_loongarch_chipset_vendor_Loongson,
 };
 
 
@@ -115,9 +115,9 @@ static bool is_loongson(const char* start, const char* end) {
 
 static const struct special_map_entry special_hardware_map_entries[] = {
 	{
-		/* "3A5000" -> Loongson 3a5000 */
-		.platform = "3A5000",
-		.series = cpuinfo_loongarch_chipset_series_Loongson_3a5000,
+		/* "3_A5000" -> Loongson 3a5000 */
+		.platform = "A5000",
+		.series = cpuinfo_loongarch_chipset_series_3,
 	},
 };
 
@@ -196,7 +196,7 @@ static const char* chipset_vendor_string[cpuinfo_loongarch_chipset_vendor_max] =
 /* Map from Loongarch chipset series ID to its string representation */
 static const char* chipset_series_string[cpuinfo_loongarch_chipset_series_max] = {
 	[cpuinfo_loongarch_chipset_series_unknown]                = NULL,
-	[cpuinfo_loongarch_chipset_series_Loongson_3a5000]           = "3A5000",
+	[cpuinfo_loongarch_chipset_series_3]           = "3",
 };
 
 /* Convert chipset name represented by cpuinfo_loongarch_chipset structure to a string representation */

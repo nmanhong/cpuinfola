@@ -45,7 +45,7 @@ void cpuinfo_loongarch_decode_cache(
 		*  +--------------------+-------+-----------+-----------+-----------+----------+
 		*
 		*/
-		case cpuinfo_uarch_loongarch_3a5000:
+		case cpuinfo_uarch_LA464:
 			*l1i = (struct cpuinfo_cache) {
 				.size = 64 * 1024,
 				.associativity = 4,
@@ -127,7 +127,7 @@ uint32_t cpuinfo_loongarch_compute_max_cache_size(const struct cpuinfo_processor
 	 */
 	switch (processor->core->uarch) {
 		
-		case cpuinfo_uarch_loongarch_3a5000:
+		case cpuinfo_uarch_LA464:
 			return 16 * 1024 * 1024;
 		default:
 			return 4 * 1024 * 1024;

@@ -16,7 +16,7 @@ enum cpuinfo_loongarch_chipset_vendor {
 
 enum cpuinfo_loongarch_chipset_series {
 	cpuinfo_loongarch_chipset_series_unknown = 0,
-	cpuinfo_loongarch_chipset_series_Loongson_3a5000,
+	cpuinfo_loongarch_chipset_series_3,
 	cpuinfo_loongarch_chipset_series_max,
 };
 

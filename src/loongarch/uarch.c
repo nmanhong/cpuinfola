@@ -11,13 +11,13 @@ void cpuinfo_loongarch_decode_vendor_uarch(
 	enum cpuinfo_uarch uarch[restrict static 1])
 {
 	*vendor = cpuinfo_vendor_loongson;
-	*uarch = cpuinfo_uarch_loongarch_3a5000;
+	*uarch = cpuinfo_uarch_LA464;
 	/*
 	function(cpucfg): choose vendor
 	// switch (function(cpucfg)) {
 	// 	case 'L':
 	// 		*vendor = cpuinfo_vendor_loongson;
-	// 		*uarch = cpuinfo_uarch_loongarch_3a5000;
+	// 		*uarch = cpuinfo_uarch_LA464;
 	// 	default:
 	// 		//not match verify vendor and uarch
 	//		*vendor = cpuinfo_vendor_unknown;
