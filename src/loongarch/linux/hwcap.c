@@ -15,12 +15,11 @@
 #include <loongarch/linux/api.h>
 #include <cpuinfo/log.h>
 
-// #if CPUINFO_ARCH_LOONGARCH64 || CPUINFO_ARCH_ARM && !defined(__ANDROID__)
+// #if CPUINFO_ARCH_LOONGARCH64
 #if CPUINFO_ARCH_LOONGARCH64 && !defined(__ANDROID__)
 	#include <sys/auxv.h>
 #else
 	#define AT_HWCAP 16
-	#define AT_HWCAP2 26
 #endif
 
 
@@ -28,11 +27,6 @@
 	static uint32_t mock_hwcap = 0;
 	void cpuinfo_set_hwcap(uint32_t hwcap) {
 		mock_hwcap = hwcap;
-	}
-
-	static uint32_t mock_hwcap2 = 0;
-	void cpuinfo_set_hwcap2(uint32_t hwcap2) {
-		mock_hwcap2 = hwcap2;
 	}
 #endif
 
