@@ -250,7 +250,7 @@ void cpuinfo_loongarch_linux_init(void) {
 			if (cluster_leader == i) {
 				/* Cluster leader: decode core vendor and uarch */
 				cpuinfo_loongarch_decode_vendor_uarch(
-				//loongarch_linux_processors[cluster_leader].cpucfg_id,
+				loongarch_linux_processors[cluster_leader].cpucfg_id,
 				&loongarch_linux_processors[cluster_leader].vendor,
 				&loongarch_linux_processors[cluster_leader].uarch);
 			} else {

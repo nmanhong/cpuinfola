@@ -72,7 +72,7 @@ static enum cpuinfo_loongarch_chipset_vendor chipset_series_vendor[cpuinfo_loong
 
 
 
-struct special_map_entry {
+struct loongson_map_entry {
 	const char* platform;
 	uint16_t model;
 	uint8_t series;
@@ -113,7 +113,7 @@ static bool is_loongson(const char* start, const char* end) {
 }
 
 
-static const struct special_map_entry special_hardware_map_entries[] = {
+static const struct loongson_map_entry loongson_hardware_map_entries[] = {
 	{
 		/* "3_A5000" -> Loongson 3a5000 */
 		.platform = "A5000",
@@ -143,20 +143,20 @@ struct cpuinfo_loongarch_chipset cpuinfo_loongarch_linux_decode_chipset_from_pro
 
 	if (is_loongson) {
 		/* Compare to tabulated Hardware values for popular chipsets/devices which can't be otherwise detected */
-		for (size_t i = 0; i < CPUINFO_COUNT_OF(special_hardware_map_entries); i++) {
-			if (strncmp(special_hardware_map_entries[i].platform, hardware, hardware_length) == 0 &&
-					special_hardware_map_entries[i].platform[hardware_length] == 0)
+		for (size_t i = 0; i < CPUINFO_COUNT_OF(loongson_hardware_map_entries); i++) {
+			if (strncmp(loongson_hardware_map_entries[i].platform, hardware, hardware_length) == 0 &&
+					loongson_hardware_map_entries[i].platform[hardware_length] == 0)
 			{
 				cpuinfo_log_debug(
 					"found /proc/cpuinfo Hardware string \"%.*s\" in special chipset table",
 					(int) hardware_length, hardware);
 				/* Create chipset name from entry */
 				return (struct cpuinfo_loongarch_chipset) {
-					.vendor = chipset_series_vendor[special_hardware_map_entries[i].series],
-					.series = (enum cpuinfo_loongarch_chipset_series) special_hardware_map_entries[i].series,
-					.model = special_hardware_map_entries[i].model,
+					.vendor = chipset_series_vendor[loongson_hardware_map_entries[i].series],
+					.series = (enum cpuinfo_loongarch_chipset_series) loongson_hardware_map_entries[i].series,
+					.model = loongson_hardware_map_entries[i].model,
 					.suffix = {
-						[0] = special_hardware_map_entries[i].suffix,
+						[0] = loongson_hardware_map_entries[i].suffix,
 					},
 				};
 			}
