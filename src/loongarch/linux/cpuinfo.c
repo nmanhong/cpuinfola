@@ -15,6 +15,21 @@
  */
 #define BUFFER_SIZE 1024
 
+struct cpuinfo_loongarch_processorID{
+	const char* name;
+	uint32_t processorID;
+};
+
+
+static const struct cpuinfo_loongarch_processorID loongson_name_map_processorID[] = {
+	{
+		/* "3A5000" -> 0xc0 */
+		.name = "3A5000",
+		.processorID = 0xc0,
+	},
+};
+
+
 
 static uint32_t parse_processor_number(
 	const char* processor_start,
@@ -160,6 +175,35 @@ static void parse_features(
 	} while (feature_start != feature_end);
 }
 
+static bool parse_loongson(const char* name_start, size_t length){
+	/* expected loongson , its length is eight */
+	if(length != 8) return false;
+	/* expected loongson , its first char is 'l' or 'L' */
+	if(name_start[0] != 'l' && name_start[0] != 'L') return false;
+	
+	char* elsechars = "oongson";
+	for(int i = 0;i<7;i++){
+		if(name_start[i+1] != elsechars[i]) return false;
+	}
+	return true;
+}
+
+static void parse_processorID(const char* name_start, size_t length, int* processorID){
+	/* expected 3A5000 or 3C5000L or other , its length is 6 or 7 */
+	if(length != 6 && length != 7) return ;
+	char cpy[] = "";
+	for (size_t i = 0; i < CPUINFO_COUNT_OF(loongson_name_map_processorID); i++) {
+
+			if (strncmp(loongson_name_map_processorID[i].name, strncpy(cpy, name_start,length), length) == 0)
+			{
+				cpuinfo_log_debug(
+					"found /proc/cpuinfo model name second string \"%.*s\" in loongson processorID table",
+					(int) length, name_start);
+				/* Create chipset name from entry */
+				*processorID = loongson_name_map_processorID[i].processorID;
+			}
+	}
+}
 
 static void parse_model_name(
 	const char* model_name_start,
@@ -184,45 +228,77 @@ static void parse_model_name(
 			(int) name_length, separator + 1, model_name_end);
 		return;
 	}
-	uint32_t cpucfg_implementer = 0;
-	uint32_t cpucfg_variant = 0;
-	uint32_t cpucfg_part = 0;
-	uint32_t cpucfg_revision = 0;
-	uint32_t cpucfg_suffix = 0;
+	uint32_t cpucfg_companyID = 0;
+	uint32_t cpucfg_processorID = 0;
 	
 	/* Verify the presence of hex prefix */
-	if (model_name_start[0] == 'l'||model_name_start[0] == 'L') {
-		cpucfg_implementer = (int)(model_name_start[0]-'A');
-		processor->cpucfg_id = cpucfg_set_implementer(processor->cpucfg_id, cpucfg_implementer);
-		processor->flags |= CPUINFO_LOONGARCH_LINUX_VALID_IMPLEMENTER | CPUINFO_LOONGARCH_LINUX_VALID_PROCESSOR;
+	bool is_loongson = parse_loongson(model_name_start, model_length);
+	if (is_loongson) {
+		cpucfg_companyID = 0x14;
+		processor->cpucfg_id = cpucfg_set_companyID(processor->cpucfg_id, cpucfg_companyID);
+		processor->flags |= CPUINFO_LOONGARCH_LINUX_VALID_COMPANYID | CPUINFO_LOONGARCH_LINUX_VALID_PROCESSOR;
 	}else{
 		cpuinfo_log_warning("Model %.*s in /proc/cpuinfo is ignored due to unexpected words",
 			(int) model_length, model_name_start);
 		return;
 	}
-	cpucfg_variant = (*(separator+1))-'0';
-	if(cpucfg_variant<10){
-		processor->cpucfg_id = cpucfg_set_variant(processor->cpucfg_id, cpucfg_variant);
-		processor->flags |= CPUINFO_LOONGARCH_LINUX_VALID_VARIANT | CPUINFO_LOONGARCH_LINUX_VALID_PROCESSOR;
-	}
-	cpucfg_part = (*(separator+2))-'A';
-	if(cpucfg_part<26){
-		cpucfg_part += 25;
-		processor->cpucfg_id = cpucfg_set_part(processor->cpucfg_id, cpucfg_part);
-		processor->flags |= CPUINFO_LOONGARCH_LINUX_VALID_PART | CPUINFO_LOONGARCH_LINUX_VALID_PROCESSOR;
-	}
-	cpucfg_revision = *(separator+3)-'0';
-	if(cpucfg_revision<10 && *(separator+6)=='0'){
-		processor->cpucfg_id = cpucfg_set_revision(processor->cpucfg_id, cpucfg_revision);
-		processor->flags |= CPUINFO_LOONGARCH_LINUX_VALID_REVISION | CPUINFO_LOONGARCH_LINUX_VALID_PROCESSOR;
-	}
-	if(name_length==7){
-		cpucfg_suffix = *(separator+4)-'A';
-		processor->cpucfg_id = cpucfg_set_suffix(processor->cpucfg_id, cpucfg_suffix);
-		processor->flags |= CPUINFO_LOONGARCH_LINUX_VALID_SUFFIX | CPUINFO_LOONGARCH_LINUX_VALID_PROCESSOR;
-	}
-}
+	parse_processorID(separator + 1, name_length, &cpucfg_processorID);
+	processor->cpucfg_id = cpucfg_set_processorID(processor->cpucfg_id, cpucfg_processorID);
+	processor->flags |= CPUINFO_LOONGARCH_LINUX_VALID_PROCESSORID | CPUINFO_LOONGARCH_LINUX_VALID_PROCESSOR;
 
+}
+static void parse_cpu_revision(
+	const char* cpu_revision_start,
+	const char* cpu_revision_end,
+	struct cpuinfo_loongarch_linux_processor processor[restrict static 1])
+{
+	const size_t cpu_revision_length = cpu_revision_end - cpu_revision_start;
+
+	if (cpu_revision_length != 4) {
+		cpuinfo_log_warning("CPU revision %.*s in /proc/cpuinfo is ignored due to unexpected length (%zu)",
+			(int) cpu_revision_length, cpu_revision_start, cpu_revision_length);
+		return;
+	}
+
+	/* Skip if there is no hex prefix (0x) */
+	if (cpu_revision_start[0] != '0' || cpu_revision_start[1] != 'x') {
+		cpuinfo_log_warning("CPU revision %.*s in /proc/cpuinfo is ignored due to lack of 0x prefix",
+			(int) cpu_revision_length, cpu_revision_start);
+		return;
+	}
+
+	/* Check if the value after hex prefix is indeed a hex digit and decode it. */
+	char digit_char = cpu_revision_start[2];
+	uint32_t cpu_revision = 0;
+	if ((uint32_t) (digit_char - '0') < 10) {
+		cpu_revision = (uint32_t) (digit_char - '0');
+	} else if ((uint32_t) (digit_char - 'A') < 6) {
+		cpu_revision = 10 + (uint32_t) (digit_char - 'A');
+	} else if ((uint32_t) (digit_char - 'a') < 6) {
+		cpu_revision = 10 + (uint32_t) (digit_char - 'a');
+	} else {
+		cpuinfo_log_warning("CPU revision %.*s in /proc/cpuinfo is ignored due to unexpected non-hex character '%c'",
+			(int) cpu_revision_length, cpu_revision_start, digit_char);
+		return;
+	}
+	cpu_revision = cpu_revision * 16;
+
+	digit_char = cpu_revision_start[3];
+	if ((uint32_t) (digit_char - '0') < 10) {
+		cpu_revision = (uint32_t) (digit_char - '0');
+	} else if ((uint32_t) (digit_char - 'A') < 6) {
+		cpu_revision = 10 + (uint32_t) (digit_char - 'A');
+	} else if ((uint32_t) (digit_char - 'a') < 6) {
+		cpu_revision = 10 + (uint32_t) (digit_char - 'a');
+	} else {
+		cpuinfo_log_warning("CPU revision %.*s in /proc/cpuinfo is ignored due to unexpected non-hex character '%c'",
+			(int) cpu_revision_length, cpu_revision_start, digit_char);
+		return;
+	}
+
+	processor->cpucfg_id = cpucfg_set_revision(processor->cpucfg_id, cpu_revision);
+	processor->flags |= CPUINFO_LOONGARCH_LINUX_VALID_REVISION | CPUINFO_LOONGARCH_LINUX_VALID_PROCESSOR;
+}
 
 struct proc_cpuinfo_parser_state {
 	uint32_t processor_index;

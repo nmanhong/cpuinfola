@@ -15,8 +15,7 @@
 #include <loongarch/linux/api.h>
 #include <cpuinfo/log.h>
 
-// #if CPUINFO_ARCH_LOONGARCH64
-#if CPUINFO_ARCH_LOONGARCH64 && !defined(__ANDROID__)
+#if CPUINFO_ARCH_LOONGARCH64
 	#include <sys/auxv.h>
 #else
 	#define AT_HWCAP 16

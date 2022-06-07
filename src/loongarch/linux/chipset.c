@@ -90,27 +90,27 @@ int strcicmp(char const *a, char const *b)
 }
 
 
-static bool is_loongson(const char* start, const char* end) {
-	/* Expect 9 ("loongarch") */
-	const size_t length = end - start;
-	switch (length) {
-		case 9:
-			break;
-		default:
-			return false;
-	}
+// static bool is_loongson(const char* start, const char* end) {
+// 	/* Expect 9 ("loongarch") */
+// 	const size_t length = end - start;
+// 	switch (length) {
+// 		case 9:
+// 			break;
+// 		default:
+// 			return false;
+// 	}
 
-	/* Check that the first 9 characters match "loongarch" */
-	if (start[0] != 'l'||start[0] != 'L') {
-		return false;
-	}
-	char* loongeelse = "oongson";
-	bool expected = strcicmp(start+1,loongeelse );
-	if(expected != 0) return false;
+// 	/* Check that the first 9 characters match "loongarch" */
+// 	if (start[0] != 'l'||start[0] != 'L') {
+// 		return false;
+// 	}
+// 	char* loongeelse = "oongson";
+// 	bool expected = strcicmp(start+1,loongeelse );
+// 	if(expected != 0) return false;
 
-	/* Check if the string is either "loongarch" (length = 9) */
-	return (length == 9);
-}
+// 	/* Check if the string is either "loongarch" (length = 9) */
+// 	return (length == 9);
+// }
 
 
 static const struct loongson_map_entry loongson_hardware_map_entries[] = {

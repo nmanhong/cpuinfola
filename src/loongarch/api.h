@@ -30,6 +30,7 @@ struct cpuinfo_loongarch_chipset {
 	char suffix[CPUINFO_LOONGARCH_CHIPSET_SUFFIX_MAX];
 };
 
+
 #define CPUINFO_LOONGARCH_CHIPSET_NAME_MAX CPUINFO_PACKAGE_NAME_MAX
 
 #ifndef __cplusplus
