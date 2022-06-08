@@ -172,7 +172,12 @@ void cpuinfo_loongarch_chipset_to_string(
 	const char* vendor_string = chipset_vendor_string[vendor];
 	const char* series_string = chipset_series_string[series];
 
-	strncpy(name, vendor_string, CPUINFO_LOONGARCH_CHIPSET_NAME_MAX);
+	if (series == cpuinfo_loongarch_chipset_series_unknown) {
+			strncpy(name, vendor_string, CPUINFO_LOONGARCH_CHIPSET_NAME_MAX);
+	} else {
+		snprintf(name, CPUINFO_LOONGARCH_CHIPSET_NAME_MAX,
+			"%s %s", vendor_string, series_string);
+	}
 }
 
 
