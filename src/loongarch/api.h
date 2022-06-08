@@ -26,8 +26,6 @@ enum cpuinfo_loongarch_chipset_series {
 struct cpuinfo_loongarch_chipset {
 	enum cpuinfo_loongarch_chipset_vendor vendor;
 	enum cpuinfo_loongarch_chipset_series series;
-	uint32_t model;
-	char suffix[CPUINFO_LOONGARCH_CHIPSET_SUFFIX_MAX];
 };
 
 

@@ -140,15 +140,15 @@ void cpuinfo_loongarch_linux_init(void) {
 	}
 
 	char proc_cpuinfo_hardware[CPUINFO_HARDWARE_VALUE_MAX];
-	char proc_cpuinfo_revision[CPUINFO_REVISION_VALUE_MAX];
 
 	if (!cpuinfo_loongarch_linux_parse_proc_cpuinfo(
+			proc_cpuinfo_hardware,
 			loongarch_linux_processors_count,
 			loongarch_linux_processors)) {
 		cpuinfo_log_error("failed to parse processor information from /proc/cpuinfo");
 		return;
 	}
-
+	
 	for (uint32_t i = 0; i < loongarch_linux_processors_count; i++) {
 		if (bitmask_all(loongarch_linux_processors[i].flags, valid_processor_mask)) {
 			loongarch_linux_processors[i].flags |= CPUINFO_LINUX_FLAG_VALID;
@@ -184,7 +184,7 @@ void cpuinfo_loongarch_linux_init(void) {
 	}
 
 	const struct cpuinfo_loongarch_chipset chipset =
-		cpuinfo_loongarch_linux_decode_chipset(proc_cpuinfo_hardware, proc_cpuinfo_revision, valid_processors);
+		cpuinfo_loongarch_linux_decode_chipset(proc_cpuinfo_hardware);
 
 
 	#if CPUINFO_ARCH_LOONGARCH64
@@ -287,6 +287,7 @@ void cpuinfo_loongarch_linux_init(void) {
 	 * - Level 2 and level 3 cache is shared between cores in the same cluster.
 	 */
 	cpuinfo_loongarch_chipset_to_string(&chipset, package.name);
+	
 	package.processor_count = valid_processors;
 	package.core_count = valid_processors;
 	package.cluster_count = cluster_count;

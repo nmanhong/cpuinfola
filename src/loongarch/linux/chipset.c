@@ -74,9 +74,7 @@ static enum cpuinfo_loongarch_chipset_vendor chipset_series_vendor[cpuinfo_loong
 
 struct loongson_map_entry {
 	const char* platform;
-	uint16_t model;
 	uint8_t series;
-	char suffix;
 };
 
 
@@ -90,33 +88,10 @@ int strcicmp(char const *a, char const *b)
 }
 
 
-// static bool is_loongson(const char* start, const char* end) {
-// 	/* Expect 9 ("loongarch") */
-// 	const size_t length = end - start;
-// 	switch (length) {
-// 		case 9:
-// 			break;
-// 		default:
-// 			return false;
-// 	}
-
-// 	/* Check that the first 9 characters match "loongarch" */
-// 	if (start[0] != 'l'||start[0] != 'L') {
-// 		return false;
-// 	}
-// 	char* loongeelse = "oongson";
-// 	bool expected = strcicmp(start+1,loongeelse );
-// 	if(expected != 0) return false;
-
-// 	/* Check if the string is either "loongarch" (length = 9) */
-// 	return (length == 9);
-// }
-
-
 static const struct loongson_map_entry loongson_hardware_map_entries[] = {
 	{
-		/* "3_A5000" -> Loongson 3a5000 */
-		.platform = "A5000",
+		/* "3A5000" -> Loongson 3a5000 */
+		.platform = "3A5000",
 		.series = cpuinfo_loongarch_chipset_series_3,
 	},
 };
@@ -128,22 +103,23 @@ static const struct loongson_map_entry loongson_hardware_map_entries[] = {
  * For some chipsets, the function relies frequency and on number of cores for chipset detection.
  *
  * @param[in] platform - /proc/cpuinfo Hardware string.
- * @param cores - number of cores in the chipset.
+ //* @param cores - number of cores in the chipset.
  *
  * @returns Decoded chipset name. If chipset could not be decoded, the resulting structure would use `unknown` vendor
  *          and series identifiers.
  */
 struct cpuinfo_loongarch_chipset cpuinfo_loongarch_linux_decode_chipset_from_proc_cpuinfo_hardware(
 	const char hardware[restrict static CPUINFO_HARDWARE_VALUE_MAX],
-	uint32_t cores, bool is_loongson)
+	bool is_loongson)
 {
 	struct cpuinfo_loongarch_chipset chipset;
 	const size_t hardware_length = strnlen(hardware, CPUINFO_HARDWARE_VALUE_MAX);
 	const char* hardware_end = hardware + hardware_length;
-
+	
 	if (is_loongson) {
 		/* Compare to tabulated Hardware values for popular chipsets/devices which can't be otherwise detected */
 		for (size_t i = 0; i < CPUINFO_COUNT_OF(loongson_hardware_map_entries); i++) {
+			
 			if (strncmp(loongson_hardware_map_entries[i].platform, hardware, hardware_length) == 0 &&
 					loongson_hardware_map_entries[i].platform[hardware_length] == 0)
 			{
@@ -154,10 +130,6 @@ struct cpuinfo_loongarch_chipset cpuinfo_loongarch_linux_decode_chipset_from_pro
 				return (struct cpuinfo_loongarch_chipset) {
 					.vendor = chipset_series_vendor[loongson_hardware_map_entries[i].series],
 					.series = (enum cpuinfo_loongarch_chipset_series) loongson_hardware_map_entries[i].series,
-					.model = loongson_hardware_map_entries[i].model,
-					.suffix = {
-						[0] = loongson_hardware_map_entries[i].suffix,
-					},
 				};
 			}
 		}
@@ -169,23 +141,6 @@ struct cpuinfo_loongarch_chipset cpuinfo_loongarch_linux_decode_chipset_from_pro
 	};
 }
 
-
-
-/*
- * Fix common bugs, typos, and renames in chipset name.
- *
- * @param[in,out] chipset - chipset name to fix.
- * @param cores - number of cores in the chipset.
- */
-void cpuinfo_loongarch_fixup_chipset(
-	struct cpuinfo_loongarch_chipset chipset[restrict static 1], uint32_t cores)
-{
-	switch (chipset->series) {
-
-		default:
-			break;
-	}
-}
 
 /* Map from Loongarch chipset vendor ID to its string representation */
 static const char* chipset_vendor_string[cpuinfo_loongarch_chipset_vendor_max] = {
@@ -205,6 +160,7 @@ void cpuinfo_loongarch_chipset_to_string(
 	char name[restrict static CPUINFO_LOONGARCH_CHIPSET_NAME_MAX])
 {
 	enum cpuinfo_loongarch_chipset_vendor vendor = chipset->vendor;
+	
 	if (vendor >= cpuinfo_loongarch_chipset_vendor_max) {
 		vendor = cpuinfo_loongarch_chipset_vendor_unknown;
 	}
@@ -212,21 +168,11 @@ void cpuinfo_loongarch_chipset_to_string(
 	if (series >= cpuinfo_loongarch_chipset_series_max) {
 		series = cpuinfo_loongarch_chipset_series_unknown;
 	}
+	
 	const char* vendor_string = chipset_vendor_string[vendor];
 	const char* series_string = chipset_series_string[series];
-	const uint32_t model = chipset->model;
-	if (model == 0) {
-		if (series == cpuinfo_loongarch_chipset_series_unknown) {
-			strncpy(name, vendor_string, CPUINFO_LOONGARCH_CHIPSET_NAME_MAX);
-		} else {
-			snprintf(name, CPUINFO_LOONGARCH_CHIPSET_NAME_MAX,
-				"%s %s", vendor_string, series_string);
-		}
-	} else {
-		const size_t suffix_length = strnlen(chipset->suffix, CPUINFO_LOONGARCH_CHIPSET_SUFFIX_MAX);
-		snprintf(name, CPUINFO_LOONGARCH_CHIPSET_NAME_MAX,
-			"%s %s%"PRIu32"%.*s", vendor_string, series_string, model, (int) suffix_length, chipset->suffix);
-	}
+
+	strncpy(name, vendor_string, CPUINFO_LOONGARCH_CHIPSET_NAME_MAX);
 }
 
 
@@ -235,25 +181,17 @@ void cpuinfo_loongarch_chipset_to_string(
 	* For some chipsets, the function relies frequency and on number of cores for chipset detection.
 	*
 	* @param[in] hardware - /proc/cpuinfo Hardware string.
-	* @param cores - number of cores in the chipset.
 	*
 	* @returns Decoded chipset name. If chipset could not be decoded, the resulting structure would use `unknown` vendor
 	*          and series identifiers.
 	*/
 struct cpuinfo_loongarch_chipset cpuinfo_loongarch_linux_decode_chipset(
-	const char hardware[restrict static CPUINFO_HARDWARE_VALUE_MAX],
-	const char revision[restrict static CPUINFO_REVISION_VALUE_MAX],
-	uint32_t cores)
+	const char hardware[restrict static CPUINFO_HARDWARE_VALUE_MAX])
 {
 	struct cpuinfo_loongarch_chipset chipset =
 		cpuinfo_loongarch_linux_decode_chipset_from_proc_cpuinfo_hardware(
-			hardware, cores, true);
-	if (chipset.vendor == cpuinfo_loongarch_chipset_vendor_unknown) {
-		cpuinfo_log_warning(
-			"chipset detection failed: /proc/cpuinfo Hardware string did not match known signatures");
-	} else {
-		cpuinfo_loongarch_fixup_chipset(&chipset, cores);
-	}
+			hardware, true);
+
 	return chipset;
 }
 

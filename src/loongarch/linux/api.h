@@ -71,6 +71,7 @@ struct cpuinfo_loongarch_linux_processor {
 
 
 CPUINFO_INTERNAL bool cpuinfo_loongarch_linux_parse_proc_cpuinfo(
+	char hardware[restrict static CPUINFO_HARDWARE_VALUE_MAX],
 	uint32_t max_processors_count,
 	struct cpuinfo_loongarch_linux_processor processors[restrict static max_processors_count]);
 
@@ -85,15 +86,13 @@ CPUINFO_INTERNAL bool cpuinfo_loongarch_linux_parse_proc_cpuinfo(
 
 CPUINFO_INTERNAL struct cpuinfo_loongarch_chipset
 	cpuinfo_loongarch_linux_decode_chipset(
-		const char hardware[restrict static CPUINFO_HARDWARE_VALUE_MAX],
-		const char revision[restrict static CPUINFO_REVISION_VALUE_MAX],
-		uint32_t cores);
+		const char hardware[restrict static CPUINFO_HARDWARE_VALUE_MAX]);
 
 
 CPUINFO_INTERNAL struct cpuinfo_loongarch_chipset
 	cpuinfo_loongarch_linux_decode_chipset_from_proc_cpuinfo_hardware(
 		const char proc_cpuinfo_hardware[restrict static CPUINFO_HARDWARE_VALUE_MAX],
-		uint32_t cores, bool is_loongson);
+		bool is_loongson);
 
 
 CPUINFO_INTERNAL bool cpuinfo_loongarch_linux_detect_core_clusters_by_heuristic(

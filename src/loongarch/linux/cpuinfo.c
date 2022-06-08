@@ -208,6 +208,7 @@ static void parse_processorID(const char* name_start, size_t length, int* proces
 static void parse_model_name(
 	const char* model_name_start,
 	const char* model_name_end,
+	char* hardware,
 	struct cpuinfo_loongarch_linux_processor processor[restrict static 1])
 {	
 	const char* separator = model_name_start;
@@ -216,8 +217,23 @@ static void parse_model_name(
 			break;
 		}
 	}
+	
 	const size_t model_length = (size_t) (separator - model_name_start);
 	const size_t name_length = (size_t) (model_name_end - (separator+1));
+
+	size_t value_length = name_length;
+
+	if (value_length > CPUINFO_HARDWARE_VALUE_MAX) {
+		cpuinfo_log_info(
+			"length of model name value \"%.*s\" in /proc/cpuinfo exceeds limit (%d): truncating to the limit",
+			(int) value_length, separator+1, CPUINFO_HARDWARE_VALUE_MAX);
+		value_length = CPUINFO_HARDWARE_VALUE_MAX;
+	} else {
+		hardware[value_length] = '\0';
+	}
+	memcpy(hardware, separator+1, value_length);
+	cpuinfo_log_debug("parsed /proc/cpuinfo model name second value = \"%.*s\"", (int) value_length, separator+1);
+
 	if (model_length != 8) {
 		cpuinfo_log_warning("Model %.*s in /proc/cpuinfo is ignored due to unexpected length (%zu)",
 			(int) model_length, model_name_start, separator - 1);
@@ -300,7 +316,31 @@ static void parse_cpu_revision(
 	processor->flags |= CPUINFO_LOONGARCH_LINUX_VALID_REVISION | CPUINFO_LOONGARCH_LINUX_VALID_PROCESSOR;
 }
 
+static void parse_package(
+	const char* cpu_package_start,
+	const char* cpu_package_end,
+	struct cpuinfo_loongarch_linux_processor processor[restrict static 1])
+{
+	uint32_t cpu_package = 0;
+	for (const char* digit_ptr = cpu_package_start; digit_ptr != cpu_package_end; digit_ptr++) {
+		const uint32_t digit = (uint32_t) (*digit_ptr - '0');
+
+		/* Verify that the character in package is a decimal digit */
+		if (digit >= 10) {
+			cpuinfo_log_warning("package %.*s in /proc/cpuinfo is ignored due to unexpected non-digit character '%c' at offset %zu",
+				(int) (cpu_package_end - cpu_package_start), cpu_package_start,
+				*digit_ptr, (size_t) (digit_ptr - cpu_package_start));
+			return;
+		}
+
+		cpu_package = cpu_package * 10 + digit;
+	}
+
+	processor->package_id = cpu_package;
+}
+
 struct proc_cpuinfo_parser_state {
+	char* hardware;
 	uint32_t processor_index;
 	uint32_t max_processors_count;
 	struct cpuinfo_loongarch_linux_processor* processors;
@@ -415,7 +455,7 @@ static bool parse_line(
 			break;
 		case 7:
 			if (memcmp(line_start, "package", key_length) == 0) {
-				/* Usually contains just zeros, useless */
+				parse_package(value_start, value_end, processor);
 			} else if (memcmp(line_start, "CPU MHz", key_length) == 0) {
 				/* CPU MHz is presently useless, don't parse */
 			} else {
@@ -464,7 +504,7 @@ static bool parse_line(
 			if (memcmp(line_start, "cpu family", key_length) == 0) {
 				/* cpu family is presently useless, don't parse */
 			} else if (memcmp(line_start, "model name", key_length) == 0) {
-				parse_model_name(value_start,value_end,processor);
+				parse_model_name(value_start,value_end,state->hardware,processor);
 			} else {
 				goto unknown;
 			}
@@ -510,10 +550,12 @@ static bool parse_line(
 }
 
 bool cpuinfo_loongarch_linux_parse_proc_cpuinfo(
+	char hardware[restrict static CPUINFO_HARDWARE_VALUE_MAX],
 	uint32_t max_processors_count,
 	struct cpuinfo_loongarch_linux_processor processors[restrict static max_processors_count])
 {
 	struct proc_cpuinfo_parser_state state = {
+		.hardware = hardware,
 		.processor_index = 0,
 		.max_processors_count = max_processors_count,
 		.processors = processors,

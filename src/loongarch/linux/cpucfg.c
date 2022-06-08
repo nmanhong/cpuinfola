@@ -19,14 +19,12 @@ static inline bool bitmask_all(uint32_t bitfield, uint32_t mask) {
 	return (bitfield & mask) == mask;
 }
 
-/* Description of core clusters configuration in a chipset (identified by series and model number) */
+/* Description of core clusters configuration in a chipset (identified by series) */
 struct cluster_config {
 	/* Number of cores (logical processors) */
 	uint8_t cores;
 	/* Loongarch chipset series (see cpuinfo_loongarch_chipset_series enum) */
 	uint8_t series;
-	/* Chipset model number (see cpuinfo_loongarch_chipset struct) */
-	uint16_t model;
 	/* Number of heterogenous clusters in the CPU package */
 	uint8_t clusters;
 	/* Number of cores in each cluster */
@@ -73,7 +71,7 @@ static bool cpuinfo_loongarch_linux_detect_cluster_cpucfg_by_chipset(
 {
 	if (clusters_count <= CLUSTERS_MAX) {
 		for (uint32_t c = 0; c < CPUINFO_COUNT_OF(cluster_configs); c++) {
-			if (cluster_configs[c].model == chipset->model && cluster_configs[c].series == chipset->series) {
+			if (cluster_configs[c].series == chipset->series) {
 				/* Verify that the total number of cores and clusters of cores matches expectation */
 				if (cluster_configs[c].cores != processors_count || cluster_configs[c].clusters != clusters_count) {
 					return false;
