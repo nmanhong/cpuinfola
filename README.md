@@ -10,7 +10,7 @@ cpuinfo is a library to detect essential for performance optimization informatio
 
 - **Cross-platform** availability:
   - Linux, Windows, macOS, Android, and iOS operating systems
-  - x86, x86-64, ARM, and ARM64 architectures
+  - x86, x86-64, ARM, ARM64 and LOONGARCH64 architectures
 - Modern **C/C++ interface**
   - Thread-safe
   - No memory allocation after initialization
