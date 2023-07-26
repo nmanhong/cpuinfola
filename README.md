@@ -244,6 +244,7 @@ LDFLAGS+= $(pkg-config --libs libcpuinfo)
   - [x] x86-64
   - [x] 32-bit ARM (ARMv5T and later)
   - [x] ARM64
+  - [x] Loongarch64
   - [ ] PowerPC64
 - [x] iOS
   - [x] x86 (iPhone simulator)
